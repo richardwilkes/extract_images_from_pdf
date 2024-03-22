@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,7 +13,7 @@ import (
 
 	"github.com/richardwilkes/toolbox/cmdline"
 	"github.com/richardwilkes/toolbox/errs"
-	"github.com/richardwilkes/toolbox/log/jot"
+	"github.com/richardwilkes/toolbox/fatal"
 	"github.com/richardwilkes/toolbox/txt"
 	"github.com/richardwilkes/toolbox/xio"
 	"github.com/richardwilkes/toolbox/xio/fs"
@@ -24,12 +25,12 @@ import (
 
 func main() {
 	cmdline.AppVersion = "0.1"
-	cmdline.CopyrightYears = "2019-2022"
+	cmdline.CopyrightStartYear = "2019"
 	cmdline.CopyrightHolder = "Richard A. Wilkes"
 	cmdline.AppIdentifier = "com.trollworks.eximgpdf"
-	common.Log = &toJotLogger{level: common.LogLevelWarning}
+	common.Log = &toLogger{level: common.LogLevelWarning}
 	cl := cmdline.New(true)
-	jot.FatalIfErr(extractImages(cl.Parse(os.Args[1:])))
+	fatal.IfErr(extractImages(cl.Parse(os.Args[1:])))
 }
 
 func extractImages(paths []string) error {
@@ -122,7 +123,7 @@ func collectFiles(set map[string]bool) ([]string, error) {
 }
 
 func processFile(path string) error {
-	jot.Infof("examining: %s", path)
+	slog.Info("examining", "path", path)
 	f, err := os.Open(path)
 	if err != nil {
 		return errs.Wrap(err)
@@ -178,7 +179,7 @@ func processFile(path string) error {
 					}
 				}
 				p := filepath.Join(dir, fmt.Sprintf("p%d_i%d.png", n, i+1))
-				jot.Infof("creating %s", p)
+				slog.Info("creating", "path", p)
 				var w *os.File
 				if w, err = os.Create(p); err != nil {
 					return errs.Wrap(err)
@@ -195,46 +196,46 @@ func processFile(path string) error {
 	return nil
 }
 
-type toJotLogger struct {
+type toLogger struct {
 	level common.LogLevel
 }
 
-func (log *toJotLogger) Error(format string, args ...interface{}) {
+func (log *toLogger) Error(format string, args ...interface{}) {
 	if log.level >= common.LogLevelError {
-		jot.Errorf(format, args...)
+		slog.Error(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) Warning(format string, args ...interface{}) {
+func (log *toLogger) Warning(format string, args ...interface{}) {
 	if log.level >= common.LogLevelWarning {
-		jot.Warnf(format, args...)
+		slog.Warn(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) Notice(format string, args ...interface{}) {
+func (log *toLogger) Notice(format string, args ...interface{}) {
 	if log.level >= common.LogLevelNotice {
-		jot.Infof(format, args...)
+		slog.Info(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) Info(format string, args ...interface{}) {
+func (log *toLogger) Info(format string, args ...interface{}) {
 	if log.level >= common.LogLevelInfo {
-		jot.Infof(format, args...)
+		slog.Info(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) Debug(format string, args ...interface{}) {
+func (log *toLogger) Debug(format string, args ...interface{}) {
 	if log.level >= common.LogLevelDebug {
-		jot.Debugf(format, args...)
+		slog.Debug(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) Trace(format string, args ...interface{}) {
+func (log *toLogger) Trace(format string, args ...interface{}) {
 	if log.level >= common.LogLevelTrace {
-		jot.Debugf(format, args...)
+		slog.Debug(fmt.Sprintf(format, args...))
 	}
 }
 
-func (log *toJotLogger) IsLogLevel(level common.LogLevel) bool {
+func (log *toLogger) IsLogLevel(level common.LogLevel) bool {
 	return log.level >= level
 }
