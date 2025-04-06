@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // Only used for deduplication
 	"fmt"
 	"image"
 	"image/png"
@@ -17,9 +17,9 @@ import (
 	"github.com/richardwilkes/toolbox/txt"
 	"github.com/richardwilkes/toolbox/xio"
 	"github.com/richardwilkes/toolbox/xio/fs"
-	"github.com/richardwilkes/unipdf/common"
-	"github.com/richardwilkes/unipdf/extractor"
-	"github.com/richardwilkes/unipdf/model"
+	"github.com/unidoc/unipdf/v3/common"
+	"github.com/unidoc/unipdf/v3/extractor"
+	"github.com/unidoc/unipdf/v3/model"
 	"github.com/yookoala/realpath"
 )
 
@@ -166,7 +166,7 @@ func processFile(path string) error {
 		}
 		dir := path[:len(path)-4] // All incoming paths have a ".pdf" suffix
 		for i, one := range pi.Images {
-			hash := md5.Sum(one.Image.Data)
+			hash := md5.Sum(one.Image.Data) //nolint:gosec // Only used for deduplication
 			if !hashes[hash] {
 				hashes[hash] = true
 				var img image.Image
